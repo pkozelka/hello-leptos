@@ -8,16 +8,9 @@ authors = ["Petr Kozelka <pkozelka@gmail.com>"]
 
 [dependencies]
 leptos = { version = "0.6", features = ["csr"] }
-leptos_meta = { version = "0.6", features = ["csr"] }
-leptos_router = { version = "0.6", features = ["csr"] }
-console_log = "1"
-log = "0.4"
 console_error_panic_hook = "0.1"
 serde = { version = "1.0.193", features = ["derive"] }
-
-# utils
-# strum = { version = "0.25", features = ["derive", "strum_macros"] }
-# strum_macros = "0.25"
+reqwasm = "0.5"
 
 
 [dev-dependencies]

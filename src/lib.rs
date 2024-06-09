@@ -1,36 +1,68 @@
 use leptos::*;
-use leptos_meta::*;
-use leptos_router::*;
+use leptos::error::Result;
+use serde::{Deserialize, Serialize};
 
-// Modules
-mod components;
-mod pages;
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct Items {
+    items: Vec<DataItem>,
+}
 
-// Top-Level pages
-use crate::pages::home::Home;
-use crate::pages::not_found::NotFound;
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct DataItem {
+    pub id: usize,
+    pub name: String,
+    pub description: String,
+    pub price: f64,
+}
+
+async fn load_data() -> Result<Vec<DataItem>> {
+    // let request = reqwasm::http::Request::get("http://127.0.0.1:3000/data.json");
+    let request = reqwasm::http::Request::get("/data.json");
+    let data = request.send().await?.json::<Items>().await?;
+    Ok(data.items)
+}
+
 
 /// An app router which renders the homepage and handles 404's
 #[component]
 pub fn App() -> impl IntoView {
-    // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context();
-
+    let once = create_local_resource(|| (), |_| async move { load_data().await });
     view! {
-        <Html lang="en" dir="ltr" attr:data-theme="light"/>
+        <ErrorBoundary fallback=|errors| {
+            view! {
+                <h1>"Uh oh! Something went wrong!"</h1>
 
-        // sets the document title
-        <Title text="Welcome to Leptos CSR"/>
+                <p>"Errors: "</p>
+                // Render a list of errors as strings - good for development purposes
+                <ul>
+                    {move || {
+                        errors.get().into_iter()
+                            .map(|(_, e)| view! { <li>{e.to_string()}</li> })
+                            .collect_view()
+                    }}
 
-        // injects metadata in the <head> of the page
-        <Meta charset="UTF-8"/>
-        <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                </ul>
+            }
+        }>
 
-        <Router>
-            <Routes>
-                <Route path="/" view=Home/>
-                <Route path="/*" view=NotFound/>
-            </Routes>
-        </Router>
+            <div class="container">
+
+        <ul>
+            {
+                move || once.get()
+                    .unwrap_or(Ok(Vec::new()))
+                    .map(|items| {
+                        items.into_iter().map(|item| {
+                            view! {
+                                <h2>{item.name}</h2>
+                                <p>{item.description}</p>
+                                <p>{format!("Price: ${:.2}", item.price)}</p>
+                            }
+                        }).collect_view()
+                    })
+            }
+        </ul>
+         </div>
+        </ErrorBoundary>
     }
 }
