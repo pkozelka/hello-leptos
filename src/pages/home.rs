@@ -1,5 +1,14 @@
 use crate::components::counter_btn::Button;
 use leptos::*;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct DataItem {
+    id: usize,
+    name: String,
+    description: String,
+    price: f64,
+}
 
 /// Default Home Page
 #[component]
