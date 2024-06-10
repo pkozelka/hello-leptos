@@ -46,22 +46,28 @@ pub fn App() -> impl IntoView {
         }>
 
             <div class="container">
-
-        <ul>
+        <table>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+        </tr>
             {
                 move || once.get()
                     .unwrap_or(Ok(Vec::new()))
                     .map(|items| {
                         items.into_iter().map(|item| {
                             view! {
-                                <h2>{item.name}</h2>
-                                <p>{item.description}</p>
-                                <p>{format!("Price: ${:.2}", item.price)}</p>
+                            <tr>
+                                <td>{item.name}</td>
+                                <td>{item.description}</td>
+                                <td>{format!("Price: ${:.2}", item.price)}</td>
+                            </tr>
                             }
                         }).collect_view()
                     })
             }
-        </ul>
+        </table>
          </div>
         </ErrorBoundary>
     }
