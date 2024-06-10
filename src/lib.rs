@@ -22,53 +22,52 @@ async fn load_data() -> Result<Vec<DataItem>> {
     Ok(data.items)
 }
 
-
-/// An app router which renders the homepage and handles 404's
 #[component]
 pub fn App() -> impl IntoView {
     let once = create_local_resource(|| (), |_| async move { load_data().await });
+    let fallback = move |errors: RwSignal<Errors>| {
+        let error_list = move || {
+            errors.with(|errors| {
+                errors
+                    .iter()
+                    .map(|(_, e)| view! { <li>{e.to_string()}</li> })
+                    .collect_view()
+            })
+        };
+
+        view! {
+            <div class="error">
+                <h2>"Error"</h2>
+                <ul>{error_list}</ul>
+            </div>
+        }
+    };
     view! {
-        <ErrorBoundary fallback=|errors| {
-            view! {
-                <h1>"Uh oh! Something went wrong!"</h1>
-
-                <p>"Errors: "</p>
-                // Render a list of errors as strings - good for development purposes
-                <ul>
-                    {move || {
-                        errors.get().into_iter()
-                            .map(|(_, e)| view! { <li>{e.to_string()}</li> })
-                            .collect_view()
-                    }}
-
-                </ul>
-            }
-        }>
-
+        <ErrorBoundary fallback>
             <div class="container">
-        <table>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-        </tr>
-            {
-                move || once.get()
-                    .unwrap_or(Ok(Vec::new()))
-                    .map(|items| {
-                        items.into_iter().map(|item| {
-                            view! {
-                            <tr>
-                                <td>{item.name}</td>
-                                <td>{item.description}</td>
-                                <td>{format!("Price: ${:.2}", item.price)}</td>
-                            </tr>
-                            }
-                        }).collect_view()
-                    })
-            }
-        </table>
-         </div>
+                <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                </tr>
+                    {
+                        move || once.get()
+                            .unwrap_or(Ok(Vec::new()))
+                            .map(|items| {
+                                items.into_iter().map(|item| {
+                                    view! {
+                                    <tr>
+                                        <td>{item.name}</td>
+                                        <td>{item.description}</td>
+                                        <td>{format!("Price: ${:.2}", item.price)}</td>
+                                    </tr>
+                                    }
+                                }).collect_view()
+                            })
+                    }
+                </table>
+            </div>
         </ErrorBoundary>
     }
 }
